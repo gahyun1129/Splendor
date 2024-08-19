@@ -7,82 +7,42 @@ using UnityEngine.UI;
 public class JoinPanelButton : MonoBehaviour
 {
     public Text roomsNum;
-    public Transform content;
+    public float space = 10f;
+    public ScrollRect scrollRect;
     public GameObject room;
-    public GameObject lobby;
-    private bool inLobby;
-    private float currentTime = 0f;
-    private float updateDelay = 2f;
+    public List<RectTransform> uiObjects = new List<RectTransform>();
 
-    private void Start()
-    {
-        StartCoroutine(JoinLobby());
-    }
     public void ClickCancle()
     {
-        inLobby = false;
         gameObject.SetActive(false);
     }
 
-    public void ClickJoin()
+    public void UpdateLobby()
     {
-       
-    }
-
-    public void ClickRoom()
-    {
-        GameObject _room = EventSystem.current.currentSelectedGameObject;
-        string roomName = _room.transform.GetChild(0).GetComponent<Text>().text;
-        string[] roomCount = _room.transform.GetChild(1).GetComponent<Text>().text.Split('/');
-        string _playerCount = roomCount[0].Trim();
-        string _maxPlayers = roomCount[1].Trim();
-        int playerCount = int.Parse(_playerCount);
-        int maxPlayers = int.Parse(_maxPlayers);
-
-        if (playerCount < maxPlayers)
+        foreach (RectTransform t in uiObjects)
         {
-            bool joined = NetworkManager.instance.JoinRoom(roomName);   
-            if (joined)
-            {
-                // 게임 시작
-            }
+            Destroy(t.gameObject);
         }
-    }
-    private void UpdateLobby()
-    {
-        foreach (Transform _room in content)
-        {
-            Destroy(_room.gameObject);
-        }
-        List<RoomList> roomLists = NetworkManager.instance.GetRoomList();
-        roomsNum.text = roomLists.Count.ToString();
+        uiObjects.Clear();
 
-        foreach (RoomList roomList in roomLists)
-        {
-            GameObject tmp = Instantiate(room, content);
-            tmp.transform.GetChild(0).GetComponent<Text>().text = roomList.roomName;
-            string count = string.Format("{0} / {1}", roomList.playerNum, roomList.maxPlayers);
-            tmp.transform.GetChild(1).GetComponent <Text>().text = count;
-            tmp.GetComponent<Button>().onClick.AddListener(delegate { ClickRoom(); });
-        }
-    }
-    private void Update()
-    {
-        if ( inLobby)
-        {
-            currentTime += Time.deltaTime;
-            if ( currentTime > updateDelay )
-            {
-                UpdateLobby();
-                currentTime = 0f;
-            }
-        }
-        roomsNum.text = NetworkManager.instance.GetRoomsCount().ToString();
-    }
+        List<RoomList> list = NetworkManager.instance.GetRooms();
+        roomsNum.text = list.Count.ToString();
 
-    private IEnumerator JoinLobby()
-    {
-        yield return StartCoroutine(NetworkManager.instance.JoinGame());
-        inLobby = NetworkManager.instance.CheckInLobby();
+        foreach (RoomList _room in list)
+        {
+            var newUi = Instantiate(room, scrollRect.content).GetComponent<RectTransform>();
+            newUi.GetChild(0).GetComponent<Text>().text = _room.roomName;
+            uiObjects.Add(newUi);
+        }
+
+        // 객체의 y값 설정
+        float y = 0f;
+        for (int i = 0; i < uiObjects.Count; i++)
+        {
+            uiObjects[i].anchoredPosition = new Vector2(0f, -y);
+            y += uiObjects[i].sizeDelta.y + space;
+        }
+        // content 영역 설정
+        scrollRect.content.sizeDelta = new Vector2(scrollRect.content.sizeDelta.x, y);
     }
 }
