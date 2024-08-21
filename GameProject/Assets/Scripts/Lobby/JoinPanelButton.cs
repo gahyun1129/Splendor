@@ -17,6 +17,16 @@ public class JoinPanelButton : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    public void ClickJoin()
+    {
+        NetworkManager.instance.PlayGame("GameScene");
+    }
+
+    public void ClickRoomButton()
+    {
+
+    }
+
     public void UpdateLobby()
     {
         foreach (RectTransform t in uiObjects)

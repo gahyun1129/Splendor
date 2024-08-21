@@ -2,6 +2,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,12 +67,14 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         return roomLists;
     }
 
+    public void PlayGame(string sceneName)
+    {
+        PhotonNetwork.LoadLevel(sceneName);
+    }
     public override void OnRoomListUpdate(List<RoomInfo> _roomList)
     {
         base.OnRoomListUpdate(_roomList);
-        roomList.Clear();
-        roomList.AddRange(_roomList);
-
-        Debug.Log($"Current Room Count: {roomList.Count}");
+        roomList = roomList.Union(_roomList).ToList();
+        roomList = roomList.Where(room => !room.RemovedFromList).ToList();
     }
 }

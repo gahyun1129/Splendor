@@ -35,5 +35,6 @@ public class CreatePanelButton : MonoBehaviour
     public void ClickCreate()
     {
         NetworkManager.instance.CreateRoom(roomName.text, int.Parse(maxPlayers.text));
+        NetworkManager.instance.PlayGame("GameScene");
     }
 }
